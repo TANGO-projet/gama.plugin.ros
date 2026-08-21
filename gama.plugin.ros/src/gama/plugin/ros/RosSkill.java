@@ -1,4 +1,4 @@
-package gama.plugin.MY_PLUGIN;
+package gama.plugin.ros;
 
 import gama.annotations.action;
 import gama.annotations.doc;
@@ -10,16 +10,16 @@ import gama.api.runtime.scope.IScope;
  * Entry point for your GAML skill.
  *
  * In GAML, agents can use this skill with:
- *   species my_agent skills: [my_skill] { ... }
+ *   species my_agent skills: [ros_skill] { ... }
  *
  * Annotate methods with @action, @getter, @setter to expose them to GAML.
  * The GamaProcessor annotation processor generates the necessary wiring at compile time.
  */
-@skill(name = "my_skill")
+@skill(name = "ros_skill")
 @doc("Sample skill — replace with your implementation.")
-public class MySkill extends Skill {
+public class RosSkill extends Skill {
 
-	@action(name = "my_action")
+	@action(name = "ros_action")
 	@doc("Sample action — replace or remove.")
 	public Object myAction(final IScope scope) {
 		// TODO: implement
