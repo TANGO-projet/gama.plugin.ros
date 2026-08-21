@@ -4,7 +4,8 @@ Bundle-Name: ROS2 connector
 Bundle-SymbolicName: gama.plugin.ros;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-25
-Bundle-ClassPath: .
+Bundle-ClassPath: .,
+ lib/jros2-1.5.1.jar
 Bundle-ActivationPolicy: lazy
 Require-Bundle: gama.dependencies,
  gama.annotations,
