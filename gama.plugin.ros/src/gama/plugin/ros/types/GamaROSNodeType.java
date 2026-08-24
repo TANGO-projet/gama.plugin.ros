@@ -4,7 +4,7 @@
  *
  * (c) 2007-2026 UMI 209 UMMISCO IRD/SU & Partners (IRIT, MIAT, ESPACE-DEV, CTU)
  *
- * Visit https://github.com/gama-platform/gama.plugin.ros for license information and contacts.
+ * Visit https://github.com/TANGO-projet/gama.plugin.ros for license information and contacts.
  *
  ********************************************************************************************************/
 package gama.plugin.ros.types;
