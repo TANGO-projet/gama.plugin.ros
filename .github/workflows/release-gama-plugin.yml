@@ -1,0 +1,105 @@
+# Pushes a new p2 "release" commit to the p2-deploy branch of THIS repository,
+# which GitHub Pages then serves at https://tango-projet.github.io/gama.plugin.ros/
+# (composite of composites: repo root = all versions, updates/X.x = per-minor,
+# releases/<qualified> = the raw p2 repository for one exact build).
+name: "[GAMA Plugin] Release with Maven"
+
+on:
+  push:
+    branches:
+      - GAMA_*
+  workflow_dispatch:
+
+# The built-in GITHUB_TOKEN pushes the p2-deploy branch of this same repository,
+# so no personal access token is needed. Pushes made with it deliberately do not
+# trigger further workflow runs, which keeps the release from re-triggering CI.
+permissions:
+  contents: write
+
+# Only one release may be in flight at a time: each run clones p2-deploy, adds a
+# child repository and pushes it back, so concurrent runs would race and one
+# would fail on a non-fast-forward push.
+concurrency:
+  group: p2-deploy
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    env:
+      DEPLOY_BRANCH: p2-deploy
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Set up JDK 25
+      uses: actions/setup-java@v6
+      with:
+        distribution: 'temurin'
+        java-version: 25
+
+    - name: Configure Git
+      run: |
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email '16764085+RoiArthurB@users.noreply.github.com'
+
+    - name: Derive GAMA p2 version from branch name
+      run: |
+        BRANCH="${{ github.ref_name }}"
+        if [[ ! "$BRANCH" =~ ^GAMA_[0-9]{4}-[0-9]{2}$ ]]; then
+          echo "::error::Branch '$BRANCH' is not a GAMA_YYYY-MM release train; refusing to release."
+          exit 1
+        fi
+        echo "GAMA_P2_VERSION=${BRANCH#GAMA_}" >> "$GITHUB_ENV"
+
+    # The Maven release profile does `git clone -b p2-deploy`, which fails if the
+    # branch does not exist yet. Create it on the first ever release as an orphan
+    # branch holding only .nojekyll (so Pages serves p2 metadata verbatim, without
+    # Jekyll processing) and a README.
+    - name: Bootstrap p2-deploy branch if missing
+      env:
+        GITHUB_UPDATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -euo pipefail
+        REMOTE="https://x-access-token:${GITHUB_UPDATE_TOKEN}@github.com/${{ github.repository }}"
+        if git ls-remote --exit-code --heads "$REMOTE" "$DEPLOY_BRANCH" >/dev/null 2>&1; then
+          echo "Branch $DEPLOY_BRANCH already exists; nothing to bootstrap."
+          exit 0
+        fi
+        echo "Branch $DEPLOY_BRANCH not found; creating it."
+        TMP="$(mktemp -d)"
+        git init --quiet --initial-branch="$DEPLOY_BRANCH" "$TMP"
+        touch "$TMP/.nojekyll"
+        cat > "$TMP/README.md" <<'MARKDOWN'
+        # p2 update site — gama.plugin.ros
+
+        This branch is **generated**. Do not edit it by hand.
+
+        It is published by `.github/workflows/release-gama-plugin.yml` and served by
+        GitHub Pages at <https://tango-projet.github.io/gama.plugin.ros/>.
+
+        ## Update site URLs
+
+        Use these in GAMA / Eclipse under "Install New Software":
+
+        | URL | Contents |
+        | --- | --- |
+        | `https://tango-projet.github.io/gama.plugin.ros/` | every released version |
+        | `https://tango-projet.github.io/gama.plugin.ros/updates/2026.x/` | latest 2026.x |
+        | `https://tango-projet.github.io/gama.plugin.ros/releases/<qualified-version>/` | one exact build |
+        MARKDOWN
+        git -C "$TMP" add -A
+        git -C "$TMP" commit --quiet -m "Initialize $DEPLOY_BRANCH branch for GitHub Pages"
+        git -C "$TMP" push --quiet "$REMOTE" "$DEPLOY_BRANCH"
+        echo "Created $DEPLOY_BRANCH."
+
+    - name: Build with Maven and push composite to p2-deploy branch
+      working-directory: "gama.plugin.parent"
+      env:
+        GITHUB_UPDATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        mvn --batch-mode clean deploy \
+              -Prelease-composite \
+              -Dgama.p2.version="${GAMA_P2_VERSION}" \
+              -Dgithub-update-repo="https://x-access-token:${GITHUB_UPDATE_TOKEN}@github.com/${{ github.repository }}"
