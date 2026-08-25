@@ -5,9 +5,6 @@
 name: "[GAMA Plugin] Release with Maven"
 
 on:
-  push:
-    branches:
-      - GAMA_*
   workflow_dispatch:
 
 # The built-in GITHUB_TOKEN pushes the p2-deploy branch of this same repository,
