@@ -15,12 +15,20 @@
     <!-- Overridden at build time via -Ddeploy.subdir (= GitHub repo name) -->
     <deploy.subdir>UNKNOWN_PLUGIN</deploy.subdir>
     <eclipse.p2.version>2026-03</eclipse.p2.version>
+
+    <!-- Required properties for releasing -->
+    <github-update-repo>git@github.com:TANGO-projet/gama.plugin.ros.git</github-update-repo>
+    <github-local-clone>${project.build.directory}/checkout</github-local-clone>
+    <releases-directory>${github-local-clone}/releases</releases-directory>
+    <current-release-directory>${releases-directory}/${qualifiedVersion}</current-release-directory>
+    <!-- The label for the Composite sites (shown by GAMA at install time) -->
+    <site.label>GAMA plugin: ROS2 connector — update site</site.label>
   </properties>
   <!-- ── Modules: add one entry per plugin/feature in this repo ── -->
   <modules>
     <module>../gama.plugin.ros</module>
     <module>../gama.plugin.feature.ros</module>
-    <module>../gama.plugin.p2updatesite</module>
+    <module>../gama.plugin.site</module>
   </modules>
   <repositories>
     <!-- GAMA platform bundles (p2) -->
@@ -289,4 +297,36 @@
       </plugins>
     </pluginManagement>
   </build>
+
+  <profiles>
+    <!-- Release flow: the p2 repo is pushed to GitHub instead of a Maven repository -->
+    <profile>
+      <id>release-composite</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <!-- No local artifacts are consumed in the release flow; avoid installing/redeploying everything to Central -->
+            <plugin>
+              <artifactId>maven-install-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>default-install</id>
+                  <phase>none</phase>
+                </execution>
+              </executions>
+            </plugin>
+            <plugin>
+              <artifactId>maven-deploy-plugin</artifactId>
+              <configuration>
+                <skip>true</skip>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+  </profiles>
 </project>
