@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature id="gama.plugin.feature.ros" version="0.0.0">
+      <category name="org.gama.plugin.ROS2"/>
+   </feature>
+
+   <category-def name="org.gama.plugin.ROS2" label="GAMA plugin: ROS2 connector"/>
+</site>
