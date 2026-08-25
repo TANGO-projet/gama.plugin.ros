@@ -57,11 +57,6 @@
         <artifactId>wagon-ssh</artifactId>
         <version>${wagon.version}</version>
       </extension>
-			<extension>
-				<groupId>org.apache.maven.extensions</groupId>
-				<artifactId>maven-build-cache-extension</artifactId>
-				<version>1.2.2</version>
-			</extension>
     </extensions>
     <plugins>
       <plugin>
