@@ -86,7 +86,11 @@ public class GamaROSTopic implements IValue {
 			final ROS2QoSProfile qos) {
 		if (topicName == null || topicName.isBlank())
 			throw GamaRuntimeException.error("A ROS2 topic needs a name", scope);
-		this.topicName = topicName.trim();
+		// ROS2 topics are DDS topics named "rt" + the topic name, so a missing leading slash produces
+		// "rtcmd_vel" instead of "rt/cmd_vel" and matches nothing. jros2 only logs a warning about it,
+		// which is invisible from a model, so the slash is added here instead.
+		final String trimmed = topicName.trim();
+		this.topicName = trimmed.startsWith("/") ? trimmed : "/" + trimmed;
 		this.messageTypeName = messageTypeName == null ? "" : messageTypeName.trim();
 		this.qos = qos == null ? ROS2QoSProfile.DEFAULT : qos;
 		this.messageClass = resolve(scope, this.messageTypeName);
