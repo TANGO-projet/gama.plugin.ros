@@ -1,0 +1,20 @@
+# ros_gz_bridge configuration for "06 Gazebo in the loop".
+#
+# Two entries, one per direction: the command GAMA decides goes out, the state Gazebo produces comes
+# back. This is the whole closed loop.
+#
+#   ros2 run ros_gz_bridge parameter_bridge --ros-args -p config_file:=gama_loop_bridge.yaml
+
+# GAMA -> Gazebo: the velocity command
+- ros_topic_name: "/model/gama_bot/cmd_vel"
+  gz_topic_name: "/model/gama_bot/cmd_vel"
+  ros_type_name: "geometry_msgs/msg/Twist"
+  gz_type_name: "gz.msgs.Twist"
+  direction: ROS_TO_GZ
+
+# Gazebo -> GAMA: where the robot actually ended up, and how fast it is actually going
+- ros_topic_name: "/model/gama_bot/odometry"
+  gz_topic_name: "/model/gama_bot/odometry"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "gz.msgs.Odometry"
+  direction: GZ_TO_ROS
